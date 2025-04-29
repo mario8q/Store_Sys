@@ -6,8 +6,15 @@ import 'signup_controller.dart';
 class SignUpBinding extends Bindings {
   @override
   void dependencies() {
-    Get.put(AppwriteProvider());
-    Get.put(AuthRepository(appwrite: Get.find<AppwriteProvider>()));
+    if (!Get.isRegistered<AppwriteProvider>()) {
+      Get.put(AppwriteProvider(), permanent: true);
+    }
+    if (!Get.isRegistered<AuthRepository>()) {
+      Get.put(
+        AuthRepository(appwrite: Get.find<AppwriteProvider>()),
+        permanent: true,
+      );
+    }
     Get.put(SignUpController(authRepository: Get.find<AuthRepository>()));
   }
 }

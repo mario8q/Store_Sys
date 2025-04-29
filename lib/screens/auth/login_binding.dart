@@ -6,8 +6,14 @@ import 'login_controller.dart';
 class LoginBinding extends Bindings {
   @override
   void dependencies() {
-    Get.put(AppwriteProvider());
-    Get.put(AuthRepository(appwrite: Get.find<AppwriteProvider>()));
-    Get.put(LoginController(authRepository: Get.find<AuthRepository>()));
+    Get.put(AppwriteProvider(), permanent: true);
+    Get.put(
+      AuthRepository(appwrite: Get.find<AppwriteProvider>()),
+      permanent: true,
+    );
+    Get.put(
+      LoginController(authRepository: Get.find<AuthRepository>()),
+      permanent: true,
+    );
   }
 }
