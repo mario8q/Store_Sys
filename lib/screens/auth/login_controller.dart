@@ -73,7 +73,8 @@ class LoginController extends GetxController {
           message: 'Inicio de sesión exitoso',
         );
 
-        await Get.offAllNamed(Routes.home);
+        // Navegar a la pantalla de inventario después del login exitoso
+        await Get.offAllNamed(Routes.inventory);
       } catch (e) {
         FullScreenLoader.cancelDialog();
         CustomSnackbar.showError(

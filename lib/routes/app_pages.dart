@@ -6,6 +6,10 @@ import '../screens/auth/login_binding.dart';
 import '../screens/auth/login_view.dart';
 import '../screens/auth/signup_binding.dart';
 import '../screens/auth/signup_view.dart';
+import '../screens/inventory/inventory_binding.dart';
+import '../screens/inventory/inventory_screen.dart';
+import '../screens/inventory/create_product_screen.dart';
+import '../screens/inventory/product_detail_screen.dart';
 
 class AppPages {
   static final pages = [
@@ -23,6 +27,19 @@ class AppPages {
       name: Routes.signup,
       page: () => const SignUpView(),
       binding: SignUpBinding(),
+    ),
+    GetPage(
+      name: Routes.inventory,
+      page: () => const InventoryScreen(),
+      binding: InventoryBinding(),
+    ),
+    GetPage(
+      name: Routes.createProduct,
+      page: () => const CreateProductScreen(),
+    ),
+    GetPage(
+      name: Routes.productDetail,
+      page: () => const ProductDetailScreen(),
     ),
   ];
 }
