@@ -30,7 +30,7 @@ class AppwriteProvider {
   }
 
   Future<Session> createSession(String email, String password) async {
-    final response = await account.createEmailSession(
+    final response = await account.createEmailPasswordSession(
       email: email,
       password: password,
     );

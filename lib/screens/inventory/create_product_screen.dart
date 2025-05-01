@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -47,13 +48,40 @@ class CreateProductScreen extends GetView<InventoryController> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Obx(() => selectedImagePath.value.isNotEmpty
-                    ? Image.network(
-                        selectedImagePath.value,
-                        height: 200,
-                        fit: BoxFit.cover,
-                      )
-                    : const SizedBox(height: 200)),
+                Obx(() {
+                  if (selectedImagePath.value.isNotEmpty) {
+                    return Container(
+                      height: 200,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.file(
+                          File(selectedImagePath.value),
+                          height: 200,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    );
+                  }
+                  return Container(
+                    height: 200,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.add_photo_alternate_outlined,
+                        size: 50,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  );
+                }),
+                const SizedBox(height: 16),
                 ElevatedButton.icon(
                   onPressed: () async {
                     final ImagePicker picker = ImagePicker();
@@ -148,7 +176,6 @@ class CreateProductScreen extends GetView<InventoryController> {
                       value: 'Ropa',
                       child: Text('Ropa'),
                     ),
-                    // Agregar más categorías según sea necesario
                   ],
                   onChanged: (value) {
                     categoryController.text = value ?? '';
@@ -162,10 +189,10 @@ class CreateProductScreen extends GetView<InventoryController> {
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (formKey.currentState!.validate()) {
                       final product = Product(
-                        id: '',  // Se generará en el backend
+                        id: '',
                         name: nameController.text,
                         description: descriptionController.text,
                         price: double.parse(priceController.text),
@@ -180,9 +207,15 @@ class CreateProductScreen extends GetView<InventoryController> {
                         imageFile = XFile(selectedImagePath.value);
                       }
 
-                      controller.createProduct(product, imageFile: imageFile);
-                      _disposeControllers();
-                      Get.back(); // Volver a la pantalla de inventario
+                      try {
+                        await controller.createProduct(product, imageFile: imageFile);
+                        _disposeControllers();
+                        Get.back();
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error al crear el producto: $e')),
+                        );
+                      }
                     }
                   },
                   child: const Text('Crear Producto'),
