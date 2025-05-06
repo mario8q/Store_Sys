@@ -1,3 +1,5 @@
+import '../../config/appwrite_config.dart';
+
 class Product {
   final String id;
   final String name;
@@ -6,6 +8,7 @@ class Product {
   final int stock;
   final String? imageUrl;
   final String category;
+  final String userId;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -17,19 +20,27 @@ class Product {
     required this.stock,
     this.imageUrl,
     required this.category,
+    required this.userId,
     required this.createdAt,
     required this.updatedAt,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
+    String? imageUrl = json['imageUrl'];
+    if (imageUrl != null) {
+      imageUrl =
+          '${AppwriteConfig.endpoint}/storage/buckets/${AppwriteConfig.productsBucketId}/files/$imageUrl/view?project=${AppwriteConfig.projectId}';
+    }
+
     return Product(
       id: json['\$id'] ?? '',
       name: json['name'] ?? '',
       description: json['description'] ?? '',
       price: (json['price'] ?? 0.0).toDouble(),
       stock: json['stock'] ?? 0,
-      imageUrl: json['imageUrl'],
+      imageUrl: imageUrl,
       category: json['category'] ?? '',
+      userId: json['userId'] ?? '',
       createdAt: DateTime.parse(json['\$createdAt']),
       updatedAt: DateTime.parse(json['\$updatedAt']),
     );
@@ -41,8 +52,8 @@ class Product {
       'description': description,
       'price': price,
       'stock': stock,
-      'imageUrl': imageUrl,
       'category': category,
+      'userId': userId,
     };
   }
 
@@ -54,6 +65,7 @@ class Product {
     int? stock,
     String? imageUrl,
     String? category,
+    String? userId,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -65,6 +77,7 @@ class Product {
       stock: stock ?? this.stock,
       imageUrl: imageUrl ?? this.imageUrl,
       category: category ?? this.category,
+      userId: userId ?? this.userId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

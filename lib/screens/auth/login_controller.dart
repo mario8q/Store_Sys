@@ -12,12 +12,8 @@ class LoginController extends GetxController {
     : _authRepository = authRepository;
 
   final formKey = GlobalKey<FormState>();
-
-  // Variables reactivas para los valores
   final RxString email = ''.obs;
   final RxString password = ''.obs;
-
-  // Controladores como late final
   late final TextEditingController emailController;
   late final TextEditingController passwordController;
 
@@ -26,8 +22,6 @@ class LoginController extends GetxController {
     super.onInit();
     emailController = TextEditingController();
     passwordController = TextEditingController();
-
-    // Escuchar cambios en los controladores
     emailController.addListener(() => email.value = emailController.text);
     passwordController.addListener(
       () => password.value = passwordController.text,
@@ -55,33 +49,37 @@ class LoginController extends GetxController {
   }
 
   Future<void> login() async {
-    if (formKey.currentState!.validate()) {
-      try {
-        FullScreenLoader.showDialog();
-        final session = await _authRepository.login(
-          email.value,
-          password.value,
-        );
+    if (!formKey.currentState!.validate()) return;
 
-        final storage = GetStorage();
-        storage.write('userId', session.userId);
-        storage.write('sessionId', session.$id);
+    try {
+      FullScreenLoader.showDialog();
 
-        FullScreenLoader.cancelDialog();
-        CustomSnackbar.showSuccess(
-          title: 'Éxito',
-          message: 'Inicio de sesión exitoso',
-        );
+      // Crear sesión
+      final session = await _authRepository.login(email.value, password.value);
 
-        // Navegar a la pantalla de inventario después del login exitoso
-        await Get.offAllNamed(Routes.inventory);
-      } catch (e) {
-        FullScreenLoader.cancelDialog();
-        CustomSnackbar.showError(
-          title: 'Error',
-          message: 'Credenciales inválidas',
-        );
-      }
+      // Verificar que podemos obtener los datos del usuario
+      final user = await _authRepository.getCurrentUser();
+
+      // Guardar datos importantes en storage
+      final storage = GetStorage();
+      await storage.write('userId', user.$id);
+      await storage.write('sessionId', session.$id);
+
+      FullScreenLoader.cancelDialog();
+
+      CustomSnackbar.showSuccess(
+        title: 'Éxito',
+        message: 'Inicio de sesión exitoso',
+      );
+
+      // Navegar a la pantalla de inventario después del login exitoso
+      await Get.offAllNamed(Routes.inventory);
+    } catch (e) {
+      FullScreenLoader.cancelDialog();
+      CustomSnackbar.showError(
+        title: 'Error',
+        message: 'Credenciales inválidas',
+      );
     }
   }
 
@@ -91,10 +89,7 @@ class LoginController extends GetxController {
 
   @override
   void onClose() {
-    // Verificar que el controlador aún está registrado antes de hacer dispose
-    if (!Get.isRegistered<LoginController>()) {
-      return;
-    }
+    if (!Get.isRegistered<LoginController>()) return;
     emailController.dispose();
     passwordController.dispose();
     super.onClose();

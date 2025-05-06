@@ -1,19 +1,16 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:appwrite/models.dart';
-import '../../utils/appwrite_constants.dart';
+import 'package:get/get.dart';
+import '../../config/appwrite_config.dart';
 
 class AppwriteProvider {
-  Client client = Client();
+  final Client client;
   late final Account account;
   late final Databases databases;
   late final Storage storage;
 
-  AppwriteProvider() {
-    client
-        .setEndpoint(AppwriteConstants.endpoint)
-        .setProject(AppwriteConstants.projectId)
-        .setSelfSigned(status: true); // For development only
-
+  AppwriteProvider() : client = Get.find<Client>() {
+    // Usar el cliente global que ya está configurado en main.dart
     account = Account(client);
     databases = Databases(client);
     storage = Storage(client);
@@ -39,5 +36,9 @@ class AppwriteProvider {
 
   Future<void> deleteSession(String sessionId) async {
     await account.deleteSession(sessionId: sessionId);
+  }
+
+  Future<User> getCurrentUser() async {
+    return await account.get();
   }
 }

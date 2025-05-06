@@ -10,6 +10,8 @@ import '../screens/inventory/inventory_binding.dart';
 import '../screens/inventory/inventory_screen.dart';
 import '../screens/inventory/create_product_screen.dart';
 import '../screens/inventory/product_detail_screen.dart';
+import '../screens/profile/edit_profile_screen.dart';
+import '../screens/profile/edit_profile_binding.dart';
 
 class AppPages {
   static final pages = [
@@ -40,6 +42,11 @@ class AppPages {
     GetPage(
       name: Routes.productDetail,
       page: () => const ProductDetailScreen(),
+    ),
+    GetPage(
+      name: Routes.editProfile,
+      page: () => const EditProfileScreen(),
+      binding: EditProfileBinding(),
     ),
   ];
 }

@@ -9,16 +9,17 @@ import 'config/appwrite_config.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
-  
-  // Inicializar el cliente de Appwrite
-  final client = Client()
+
+  // Configurar el cliente de Appwrite con la configuración correcta
+  final client = Client();
+  client
     ..setEndpoint(AppwriteConfig.endpoint)
     ..setProject(AppwriteConfig.projectId)
-    ..setSelfSigned(status: true); // Útil durante el desarrollo
+    ..setSelfSigned(status: true); // Solo para desarrollo
 
   // Registrar el cliente como una dependencia global
   Get.put<Client>(client, permanent: true);
-  
+
   runApp(const MyApp());
 }
 

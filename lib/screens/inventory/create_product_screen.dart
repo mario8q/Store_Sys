@@ -172,10 +172,7 @@ class CreateProductScreen extends GetView<InventoryController> {
                       value: 'Electrónicos',
                       child: Text('Electrónicos'),
                     ),
-                    DropdownMenuItem(
-                      value: 'Ropa',
-                      child: Text('Ropa'),
-                    ),
+                    DropdownMenuItem(value: 'Ropa', child: Text('Ropa')),
                   ],
                   onChanged: (value) {
                     categoryController.text = value ?? '';
@@ -198,6 +195,7 @@ class CreateProductScreen extends GetView<InventoryController> {
                         price: double.parse(priceController.text),
                         stock: int.parse(stockController.text),
                         category: categoryController.text,
+                        userId: controller.currentUser.value?.id ?? '',
                         createdAt: DateTime.now(),
                         updatedAt: DateTime.now(),
                       );
@@ -208,12 +206,17 @@ class CreateProductScreen extends GetView<InventoryController> {
                       }
 
                       try {
-                        await controller.createProduct(product, imageFile: imageFile);
+                        await controller.createProduct(
+                          product,
+                          image: imageFile,
+                        );
                         _disposeControllers();
                         Get.back();
                       } catch (e) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error al crear el producto: $e')),
+                          SnackBar(
+                            content: Text('Error al crear el producto: $e'),
+                          ),
                         );
                       }
                     }

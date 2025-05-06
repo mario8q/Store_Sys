@@ -8,17 +8,20 @@ class InventoryProvider {
   final Storage _storage;
 
   InventoryProvider()
-      : _databases = Databases(Get.find<Client>()),
-        _storage = Storage(Get.find<Client>());
+    : _databases = Databases(Get.find<Client>()),
+      _storage = Storage(Get.find<Client>());
 
-  Future<List<Product>> getProducts() async {
+  Future<List<Product>> getProducts(String userId) async {
     try {
       final response = await _databases.listDocuments(
         databaseId: AppwriteConfig.databaseId,
         collectionId: AppwriteConfig.productsCollectionId,
+        queries: [Query.equal('userId', userId)],
       );
 
-      return response.documents.map((doc) => Product.fromJson(doc.data)).toList();
+      return response.documents
+          .map((doc) => Product.fromJson(doc.data))
+          .toList();
     } catch (e) {
       throw 'Error al obtener productos: $e';
     }
@@ -40,10 +43,7 @@ class InventoryProvider {
         databaseId: AppwriteConfig.databaseId,
         collectionId: AppwriteConfig.productsCollectionId,
         documentId: ID.unique(),
-        data: {
-          ...product.toJson(),
-          if (imageUrl != null) 'imageUrl': imageUrl,
-        },
+        data: {...product.toJson(), if (imageUrl != null) 'imageUrl': imageUrl},
       );
 
       return Product.fromJson(response.data);
@@ -74,10 +74,7 @@ class InventoryProvider {
         databaseId: AppwriteConfig.databaseId,
         collectionId: AppwriteConfig.productsCollectionId,
         documentId: product.id,
-        data: {
-          ...product.toJson(),
-          if (imageUrl != null) 'imageUrl': imageUrl,
-        },
+        data: {...product.toJson(), if (imageUrl != null) 'imageUrl': imageUrl},
       );
 
       return Product.fromJson(response.data);
@@ -105,17 +102,17 @@ class InventoryProvider {
     }
   }
 
-  Future<List<Product>> searchProducts(String query) async {
+  Future<List<Product>> searchProducts(String query, String userId) async {
     try {
       final response = await _databases.listDocuments(
         databaseId: AppwriteConfig.databaseId,
         collectionId: AppwriteConfig.productsCollectionId,
-        queries: [
-          Query.search('name', query),
-        ],
+        queries: [Query.equal('userId', userId), Query.search('name', query)],
       );
 
-      return response.documents.map((doc) => Product.fromJson(doc.data)).toList();
+      return response.documents
+          .map((doc) => Product.fromJson(doc.data))
+          .toList();
     } catch (e) {
       throw 'Error al buscar productos: $e';
     }

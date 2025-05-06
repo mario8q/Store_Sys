@@ -17,4 +17,8 @@ class AuthRepository {
   Future<void> logout(String sessionId) async {
     await _appwrite.deleteSession(sessionId);
   }
+
+  Future<User> getCurrentUser() async {
+    return await _appwrite.getCurrentUser();
+  }
 }
