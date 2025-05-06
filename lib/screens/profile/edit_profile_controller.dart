@@ -10,6 +10,7 @@ class EditProfileController extends GetxController {
 
   final formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
+  final emailController = TextEditingController();
   final Rx<UserModel?> currentUser = Rx<UserModel?>(null);
   final RxBool isLoading = false.obs;
 
@@ -26,6 +27,7 @@ class EditProfileController extends GetxController {
       final response = await account.get();
       currentUser.value = UserModel.fromJson(response.toMap());
       nameController.text = currentUser.value?.name ?? '';
+      emailController.text = currentUser.value?.email ?? '';
     } catch (e) {
       Get.snackbar(
         'Error',
@@ -38,6 +40,16 @@ class EditProfileController extends GetxController {
     }
   }
 
+  String? validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Por favor ingrese su email';
+    }
+    if (!GetUtils.isEmail(value)) {
+      return 'Por favor ingrese un email válido';
+    }
+    return null;
+  }
+
   Future<void> updateProfile() async {
     if (!formKey.currentState!.validate()) return;
 
@@ -46,6 +58,17 @@ class EditProfileController extends GetxController {
 
       // Actualizar nombre
       await account.updateName(name: nameController.text);
+
+      // Actualizar email si ha cambiado
+      if (emailController.text != currentUser.value?.email) {
+        final password = await _showPasswordDialog();
+        if (password != null) {
+          await account.updateEmail(
+            email: emailController.text,
+            password: password,
+          );
+        }
+      }
 
       Get.snackbar(
         'Éxito',
@@ -73,9 +96,51 @@ class EditProfileController extends GetxController {
     }
   }
 
+  Future<String?> _showPasswordDialog() async {
+    final passwordController = TextEditingController();
+
+    return await Get.dialog<String>(
+      AlertDialog(
+        title: const Text('Confirmar cambio de email'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Para cambiar tu email, necesitamos verificar tu identidad.',
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: passwordController,
+              decoration: const InputDecoration(
+                labelText: 'Contraseña actual',
+                border: OutlineInputBorder(),
+              ),
+              obscureText: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              if (passwordController.text.isNotEmpty) {
+                Get.back(result: passwordController.text);
+              }
+            },
+            child: const Text('Confirmar'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void onClose() {
     nameController.dispose();
+    emailController.dispose();
     super.onClose();
   }
 }

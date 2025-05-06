@@ -38,11 +38,14 @@ class EditProfileScreen extends GetView<EditProfileController> {
                   },
                 ),
                 const SizedBox(height: 16),
-                Obx(
-                  () => Text(
-                    'Email: ${controller.currentUser.value?.email ?? ""}',
-                    style: Theme.of(context).textTheme.bodyLarge,
+                TextFormField(
+                  controller: controller.emailController,
+                  decoration: const InputDecoration(
+                    labelText: 'Email',
+                    border: OutlineInputBorder(),
                   ),
+                  keyboardType: TextInputType.emailAddress,
+                  validator: controller.validateEmail,
                 ),
                 const SizedBox(height: 24),
                 SizedBox(
