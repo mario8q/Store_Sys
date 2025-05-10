@@ -9,7 +9,8 @@ class ProductDetailScreen extends GetView<InventoryController> {
 
   @override
   Widget build(BuildContext context) {
-    final Product product = Get.arguments as Product;
+    final Rx<Product> rxProduct = (Get.arguments as Product).obs;
+    final Product product = rxProduct.value;
     final formKey = GlobalKey<FormState>();
     final nameController = TextEditingController(text: product.name);
     final descriptionController = TextEditingController(
@@ -200,19 +201,9 @@ class ProductDetailScreen extends GetView<InventoryController> {
                         return null;
                       },
                     ),
-                    DropdownButtonFormField<String>(
-                      value: categoryController.text,
+                    TextFormField(
+                      controller: categoryController,
                       decoration: const InputDecoration(labelText: 'Categoría'),
-                      items: const [
-                        DropdownMenuItem(
-                          value: 'Electrónicos',
-                          child: Text('Electrónicos'),
-                        ),
-                        DropdownMenuItem(value: 'Ropa', child: Text('Ropa')),
-                      ],
-                      onChanged: (value) {
-                        categoryController.text = value ?? '';
-                      },
                       validator:
                           (value) =>
                               value?.isEmpty ?? true ? 'Campo requerido' : null,
@@ -242,9 +233,21 @@ class ProductDetailScreen extends GetView<InventoryController> {
                     if (selectedImagePath.value.isNotEmpty) {
                       imageFile = XFile(selectedImagePath.value);
                     }
-
-                    controller.updateProduct(updatedProduct, image: imageFile);
-                    Get.back();
+                    controller
+                        .updateProduct(updatedProduct, image: imageFile)
+                        .then((_) {
+                          // Solo cerramos el diálogo, el controlador manejará la navegación
+                          Navigator.of(context).pop();
+                        })
+                        .catchError((error) {
+                          // Si hay un error, mostrar mensaje pero mantener el diálogo abierto
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Error al actualizar: $error'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        });
                   }
                 },
                 child: const Text('Guardar'),

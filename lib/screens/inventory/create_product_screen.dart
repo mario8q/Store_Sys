@@ -162,24 +162,15 @@ class CreateProductScreen extends GetView<InventoryController> {
                   },
                 ),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
+                TextFormField(
+                  controller: categoryController,
                   decoration: const InputDecoration(
                     labelText: 'Categoría',
                     border: OutlineInputBorder(),
                   ),
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'Electrónicos',
-                      child: Text('Electrónicos'),
-                    ),
-                    DropdownMenuItem(value: 'Ropa', child: Text('Ropa')),
-                  ],
-                  onChanged: (value) {
-                    categoryController.text = value ?? '';
-                  },
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Por favor seleccione una categoría';
+                      return 'Por favor ingrese una categoría';
                     }
                     return null;
                   },

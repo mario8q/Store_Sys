@@ -121,38 +121,32 @@ class InventoryScreen extends GetView<InventoryController> {
           (context) => AlertDialog(
             title: const Text('Filtrar por categoría'),
             content: Obx(
-              () => Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  RadioListTile<String>(
-                    title: const Text('Todos'),
-                    value: '',
-                    groupValue: controller.selectedCategory.value,
-                    onChanged: (value) {
-                      controller.setSelectedCategory(value ?? '');
-                      Get.back();
-                    },
-                  ),
-                  RadioListTile<String>(
-                    title: const Text('Electrónicos'),
-                    value: 'Electrónicos',
-                    groupValue: controller.selectedCategory.value,
-                    onChanged: (value) {
-                      controller.setSelectedCategory(value ?? '');
-                      Get.back();
-                    },
-                  ),
-                  RadioListTile<String>(
-                    title: const Text('Ropa'),
-                    value: 'Ropa',
-                    groupValue: controller.selectedCategory.value,
-                    onChanged: (value) {
-                      controller.setSelectedCategory(value ?? '');
-                      Get.back();
-                    },
-                  ),
-                  // Agregar más categorías según sea necesario
-                ],
+              () => SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    RadioListTile<String>(
+                      title: const Text('Todos'),
+                      value: '',
+                      groupValue: controller.selectedCategory.value,
+                      onChanged: (value) {
+                        controller.setSelectedCategory(value ?? '');
+                        Get.back();
+                      },
+                    ),
+                    ...controller.getUniqueCategories().map(
+                      (category) => RadioListTile<String>(
+                        title: Text(category),
+                        value: category,
+                        groupValue: controller.selectedCategory.value,
+                        onChanged: (value) {
+                          controller.setSelectedCategory(value ?? '');
+                          Get.back();
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

@@ -186,16 +186,14 @@ class InventoryController extends GetxController {
       final index = products.indexWhere((p) => p.id == updatedProduct.id);
       if (index != -1) {
         products[index] = updatedProduct;
-      }
-
+      } // Actualizar UI primero, luego mostrar mensaje
+      Get.back(); // Volver a la pantalla de inventario
       Get.snackbar(
         'Éxito',
         'Producto actualizado correctamente',
         backgroundColor: Colors.green,
         colorText: Colors.white,
       );
-
-      Get.back(); // Volver a la pantalla de inventario
     } catch (e) {
       Get.snackbar(
         'Error',
@@ -276,14 +274,14 @@ class InventoryController extends GetxController {
         return;
       }
 
-      final queries = <String>['userId="$userId"'];
+      List<String> queries = [Query.equal('userId', userId)];
 
       if (selectedCategory.value.isNotEmpty) {
-        queries.add('category="${selectedCategory.value}"');
+        queries.add(Query.equal('category', selectedCategory.value));
       }
 
       if (searchQuery.value.isNotEmpty) {
-        queries.add('name~"${searchQuery.value}"');
+        queries.add(Query.search('name', searchQuery.value));
       }
 
       final response = await databases.listDocuments(
@@ -304,5 +302,10 @@ class InventoryController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  List<String> getUniqueCategories() {
+    final categories = products.map((p) => p.category).toSet().toList()..sort();
+    return categories;
   }
 }
