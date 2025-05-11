@@ -209,18 +209,32 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                       if (selectedImagePath.value.isNotEmpty) {
                         imageFile = XFile(selectedImagePath.value);
                       }
-
                       try {
                         await controller.createProduct(
                           product,
                           image: imageFile,
                         );
-                        Get.back();
+
+                        Get.back(); // Primero navegar de vuelta
+
+                        // Luego actualizar la lista y mostrar el mensaje
+                        await controller.fetchProducts();
+                        Get.snackbar(
+                          'Éxito',
+                          'Producto creado correctamente',
+                          backgroundColor: Colors.green,
+                          colorText: Colors.white,
+                          duration: const Duration(seconds: 2),
+                          snackPosition: SnackPosition.TOP,
+                        );
                       } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Error al crear el producto: $e'),
-                          ),
+                        Get.snackbar(
+                          'Error',
+                          'Error al crear el producto: $e',
+                          backgroundColor: Colors.red,
+                          colorText: Colors.white,
+                          duration: const Duration(seconds: 2),
+                          snackPosition: SnackPosition.TOP,
                         );
                       }
                     }

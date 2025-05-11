@@ -130,12 +130,7 @@ class InventoryController extends GetxController {
       final newProduct = Product.fromJson(response.data);
       products.add(newProduct);
 
-      Get.snackbar(
-        'Éxito',
-        'Producto creado correctamente',
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
+      // No mostrar el snackbar aquí, dejarlo para la pantalla que llama a este método
     } catch (e) {
       Get.snackbar(
         'Error',
