@@ -263,7 +263,9 @@ class InventoryController extends GetxController {
         queries: [Query.equal('userId', userId)],
       );
 
-      return response.documents.map((doc) => Product.fromJson(doc.data)).toList();
+      return response.documents
+          .map((doc) => Product.fromJson(doc.data))
+          .toList();
     } catch (e) {
       debugPrint('Error obteniendo productos: $e');
       return [];
@@ -273,7 +275,7 @@ class InventoryController extends GetxController {
   void filterProducts() async {
     try {
       isLoading.value = true;
-      
+
       // Si no hay filtros activos, mostrar todos los productos
       if (searchQuery.value.isEmpty && selectedCategory.value.isEmpty) {
         final allProducts = await _getAllProducts();
@@ -283,14 +285,19 @@ class InventoryController extends GetxController {
 
       // Obtener todos los productos y filtrar localmente
       final allProducts = await _getAllProducts();
-      
-      products.value = allProducts.where((product) {
-        final matchesSearch = searchQuery.value.isEmpty ||
-            product.name.toLowerCase().contains(searchQuery.value.toLowerCase());
-        final matchesCategory = selectedCategory.value.isEmpty ||
-            product.category == selectedCategory.value;
-        return matchesSearch && matchesCategory;
-      }).toList();
+
+      products.value =
+          allProducts.where((product) {
+            final matchesSearch =
+                searchQuery.value.isEmpty ||
+                product.name.toLowerCase().contains(
+                  searchQuery.value.toLowerCase(),
+                );
+            final matchesCategory =
+                selectedCategory.value.isEmpty ||
+                product.category == selectedCategory.value;
+            return matchesSearch && matchesCategory;
+          }).toList();
     } catch (e) {
       Get.snackbar(
         'Error',

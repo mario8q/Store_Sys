@@ -5,40 +5,54 @@ import 'package:image_picker/image_picker.dart';
 import '../../data/models/product.dart';
 import 'inventory_controller.dart';
 
-class CreateProductScreen extends GetView<InventoryController> {
+class CreateProductScreen extends StatefulWidget {
   const CreateProductScreen({Key? key}) : super(key: key);
 
   @override
+  State<CreateProductScreen> createState() => _CreateProductScreenState();
+}
+
+class _CreateProductScreenState extends State<CreateProductScreen> {
+  final formKey = GlobalKey<FormState>();
+  late final TextEditingController nameController;
+  late final TextEditingController descriptionController;
+  late final TextEditingController priceController;
+  late final TextEditingController stockController;
+  late final TextEditingController categoryController;
+  final selectedImagePath = ''.obs;
+  late final InventoryController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = Get.find<InventoryController>();
+    nameController = TextEditingController();
+    descriptionController = TextEditingController();
+    priceController = TextEditingController();
+    stockController = TextEditingController();
+    categoryController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    descriptionController.dispose();
+    priceController.dispose();
+    stockController.dispose();
+    categoryController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final formKey = GlobalKey<FormState>();
-    final nameController = TextEditingController();
-    final descriptionController = TextEditingController();
-    final priceController = TextEditingController();
-    final stockController = TextEditingController();
-    final categoryController = TextEditingController();
-    final RxString selectedImagePath = ''.obs;
-
-    // Asegurar que los controladores se limpien al salir
-    Get.put(nameController, tag: 'create_name');
-    Get.put(descriptionController, tag: 'create_description');
-    Get.put(priceController, tag: 'create_price');
-    Get.put(stockController, tag: 'create_stock');
-    Get.put(categoryController, tag: 'create_category');
-
     return WillPopScope(
-      onWillPop: () async {
-        _disposeControllers();
-        return true;
-      },
+      onWillPop: () async => true,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Crear Producto'),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              _disposeControllers();
-              Get.back();
-            },
+            onPressed: () => Get.back(),
           ),
         ),
         body: SingleChildScrollView(
@@ -201,7 +215,6 @@ class CreateProductScreen extends GetView<InventoryController> {
                           product,
                           image: imageFile,
                         );
-                        _disposeControllers();
                         Get.back();
                       } catch (e) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -220,29 +233,5 @@ class CreateProductScreen extends GetView<InventoryController> {
         ),
       ),
     );
-  }
-
-  void _disposeControllers() {
-    // Limpiar los controladores al salir de la pantalla
-    if (Get.isRegistered<TextEditingController>(tag: 'create_name')) {
-      Get.find<TextEditingController>(tag: 'create_name').dispose();
-      Get.delete<TextEditingController>(tag: 'create_name');
-    }
-    if (Get.isRegistered<TextEditingController>(tag: 'create_description')) {
-      Get.find<TextEditingController>(tag: 'create_description').dispose();
-      Get.delete<TextEditingController>(tag: 'create_description');
-    }
-    if (Get.isRegistered<TextEditingController>(tag: 'create_price')) {
-      Get.find<TextEditingController>(tag: 'create_price').dispose();
-      Get.delete<TextEditingController>(tag: 'create_price');
-    }
-    if (Get.isRegistered<TextEditingController>(tag: 'create_stock')) {
-      Get.find<TextEditingController>(tag: 'create_stock').dispose();
-      Get.delete<TextEditingController>(tag: 'create_stock');
-    }
-    if (Get.isRegistered<TextEditingController>(tag: 'create_category')) {
-      Get.find<TextEditingController>(tag: 'create_category').dispose();
-      Get.delete<TextEditingController>(tag: 'create_category');
-    }
-  }
+  } // Removed _disposeControllers as it's no longer needed
 }
