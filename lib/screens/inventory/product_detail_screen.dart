@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -133,8 +134,8 @@ class ProductDetailScreen extends GetView<InventoryController> {
                     Obx(() {
                       final imagePath = selectedImagePath.value;
                       if (imagePath.isNotEmpty) {
-                        return Image.network(
-                          imagePath,
+                        return Image.file(
+                          File(imagePath),
                           height: 100,
                           fit: BoxFit.cover,
                         );

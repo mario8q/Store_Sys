@@ -187,14 +187,36 @@ class InventoryController extends GetxController {
   Future<void> updateProduct(Product product, {XFile? image}) async {
     try {
       isLoading.value = true;
-      String? imageId;
+      String? imageId = product.imageUrl;
 
       // Si hay una nueva imagen, súbela primero
       if (image != null) {
+        if (imageId != null) {
+          // Obtener el ID de la imagen actual
+          imageId = imageId.split('/').last.split('?').first;
+          // Intentar eliminar la imagen anterior si existe
+          try {
+            await storage.deleteFile(
+              bucketId: AppwriteConfig.productsBucketId,
+              fileId: imageId,
+            );
+          } catch (e) {
+            debugPrint('Error al eliminar imagen anterior: $e');
+          }
+        } else {
+          // Si no hay imagen previa, generar nuevo ID
+          imageId = ID.unique();
+        }
+
+        // Subir la nueva imagen con el ID existente o el nuevo
         final file = await storage.createFile(
           bucketId: AppwriteConfig.productsBucketId,
-          fileId: ID.unique(),
+          fileId: imageId,
           file: InputFile.fromPath(path: image.path),
+          permissions: [
+            Permission.read(Role.any()),
+            Permission.write(Role.user(product.userId)),
+          ],
         );
         imageId = file.$id;
       }
