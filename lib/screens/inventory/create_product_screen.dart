@@ -98,12 +98,37 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                 const SizedBox(height: 16),
                 ElevatedButton.icon(
                   onPressed: () async {
-                    final ImagePicker picker = ImagePicker();
-                    final XFile? image = await picker.pickImage(
-                      source: ImageSource.gallery,
-                    );
-                    if (image != null) {
-                      selectedImagePath.value = image.path;
+                    try {
+                      final ImagePicker picker = ImagePicker();
+                      final XFile? image = await picker.pickImage(
+                        source: ImageSource.gallery,
+                        maxWidth: 1024, // Limitar tamaño para mejor rendimiento
+                        maxHeight: 1024,
+                        imageQuality: 85, // Comprimir un poco la imagen
+                      );
+                      if (image != null) {
+                        final file = File(image.path);
+                        if (await file.exists()) {
+                          selectedImagePath.value = image.path;
+                          debugPrint('Imagen seleccionada: ${image.path}');
+                        } else {
+                          debugPrint('El archivo de imagen no existe');
+                          Get.snackbar(
+                            'Error',
+                            'No se pudo acceder a la imagen seleccionada',
+                            backgroundColor: Colors.red,
+                            colorText: Colors.white,
+                          );
+                        }
+                      }
+                    } catch (e) {
+                      debugPrint('Error al seleccionar imagen: $e');
+                      Get.snackbar(
+                        'Error',
+                        'Error al seleccionar la imagen',
+                        backgroundColor: Colors.red,
+                        colorText: Colors.white,
+                      );
                     }
                   },
                   icon: const Icon(Icons.image),
@@ -204,11 +229,21 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                         createdAt: DateTime.now(),
                         updatedAt: DateTime.now(),
                       );
-
                       XFile? imageFile;
                       if (selectedImagePath.value.isNotEmpty) {
-                        imageFile = XFile(selectedImagePath.value);
+                        final file = File(selectedImagePath.value);
+                        if (await file.exists()) {
+                          imageFile = XFile(selectedImagePath.value);
+                          debugPrint(
+                            'Preparando imagen para subir: ${selectedImagePath.value}',
+                          );
+                        } else {
+                          debugPrint(
+                            'Archivo de imagen no encontrado al crear producto',
+                          );
+                        }
                       }
+
                       try {
                         await controller.createProduct(
                           product,

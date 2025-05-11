@@ -102,29 +102,70 @@ class InventoryController extends GetxController {
       if (userId == null) {
         throw 'Usuario no autenticado';
       }
-
       String? imageId;
-
       // Si hay una imagen, súbela primero
       if (image != null) {
-        final file = await storage.createFile(
-          bucketId: AppwriteConfig.productsBucketId,
-          fileId: ID.unique(),
-          file: InputFile.fromPath(path: image.path),
-        );
-        imageId = file.$id;
+        try {
+          debugPrint('Intentando subir imagen desde: ${image.path}');
+          debugPrint('Bucket ID: ${AppwriteConfig.productsBucketId}');
+
+          // Generar un ID único que será el mismo para el archivo y el producto
+          final uniqueId = ID.unique();
+          debugPrint('ID generado para el archivo: $uniqueId');
+
+          // Obtener el nombre del archivo original
+          final originalFilename = image.name;
+          final extension = originalFilename.split('.').last;
+          final safeFilename = '${uniqueId}.$extension';
+
+          final file = await storage.createFile(
+            bucketId: AppwriteConfig.productsBucketId,
+            fileId: uniqueId,
+            file: InputFile.fromPath(path: image.path, filename: safeFilename),
+            permissions: [
+              Permission.read(Role.any()),
+              Permission.write(Role.user(userId)),
+            ],
+          );
+
+          imageId = file.$id;
+          debugPrint('Imagen subida con éxito. ID: $imageId');
+
+          // Verificar que el archivo se subió correctamente
+          try {
+            final fileInfo = await storage.getFile(
+              bucketId: AppwriteConfig.productsBucketId,
+              fileId: imageId,
+            );
+            debugPrint('Archivo verificado: ${fileInfo.name}');
+          } catch (e) {
+            debugPrint('Error verificando el archivo: $e');
+            throw 'Error verificando la imagen subida: $e';
+          }
+        } catch (e) {
+          debugPrint('Error al subir la imagen: $e');
+          throw 'Error al subir la imagen: $e';
+        }
       }
 
       // Crear el documento del producto con el userId
       final productWithUserId = product.copyWith(userId: userId);
+      debugPrint('Creando producto con imageId: $imageId');
+      debugPrint('Preparando datos del producto para crear documento');
+      final documentId = ID.unique();
+      debugPrint('ID generado para el documento: $documentId');
+
+      final productData = {
+        ...productWithUserId.toJson(),
+        if (imageId != null) 'imageUrl': imageId,
+      };
+      debugPrint('Datos del producto a crear: $productData');
+
       final response = await databases.createDocument(
         databaseId: AppwriteConfig.databaseId,
         collectionId: AppwriteConfig.productsCollectionId,
-        documentId: ID.unique(),
-        data: {
-          ...productWithUserId.toJson(),
-          if (imageId != null) 'imageUrl': imageId,
-        },
+        documentId: documentId,
+        data: productData,
       );
 
       final newProduct = Product.fromJson(response.data);

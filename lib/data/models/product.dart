@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import '../../config/appwrite_config.dart';
 
 class Product {
@@ -24,12 +25,13 @@ class Product {
     required this.createdAt,
     required this.updatedAt,
   });
-
   factory Product.fromJson(Map<String, dynamic> json) {
-    String? imageUrl = json['imageUrl'];
-    if (imageUrl != null) {
+    String? imageId = json['imageUrl'];
+    String? imageUrl;
+    if (imageId != null) {
       imageUrl =
-          '${AppwriteConfig.endpoint}/storage/buckets/${AppwriteConfig.productsBucketId}/files/$imageUrl/view?project=${AppwriteConfig.projectId}';
+          '${AppwriteConfig.endpoint}/storage/buckets/${AppwriteConfig.productsBucketId}/files/$imageId/view?project=${AppwriteConfig.projectId}';
+      debugPrint('URL de imagen construida: $imageUrl');
     }
 
     return Product(
