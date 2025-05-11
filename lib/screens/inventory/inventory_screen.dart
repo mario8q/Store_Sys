@@ -24,6 +24,10 @@ class InventoryScreen extends GetView<InventoryController> {
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.more_vert),
+            onPressed: () => _showOptionsMenu(context),
+          ),
+          IconButton(
             icon: const Icon(Icons.filter_list),
             onPressed: () => _showFilterDialog(context),
           ),
@@ -184,6 +188,47 @@ class InventoryScreen extends GetView<InventoryController> {
 
   void _showAddProductDialog(BuildContext context) {
     Get.toNamed(Routes.createProduct);
+  }
+
+  void _showOptionsMenu(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.attach_money),
+                title: const Text('Gastos'),
+                onTap: () {
+                  Get.back();
+                  Get.toNamed(Routes.expenseList);
+                },
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.point_of_sale),
+                title: const Text('Registrar Venta'),
+                onTap: () {
+                  Get.back();
+                  // TODO: Implementar navegación a la pantalla de ventas
+                },
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.balance),
+                title: const Text('Ver Balance'),
+                onTap: () {
+                  Get.back();
+                  // TODO: Implementar navegación a la pantalla de balance
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
 

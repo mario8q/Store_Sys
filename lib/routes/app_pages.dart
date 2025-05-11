@@ -12,6 +12,9 @@ import '../screens/inventory/create_product_screen.dart';
 import '../screens/inventory/product_detail_screen.dart';
 import '../screens/profile/edit_profile_screen.dart';
 import '../screens/profile/edit_profile_binding.dart';
+import '../screens/expenses/create_expense_screen.dart';
+import '../screens/expenses/expense_list_screen.dart';
+import '../screens/expenses/expense_binding.dart';
 
 class AppPages {
   static final pages = [
@@ -47,6 +50,17 @@ class AppPages {
       name: Routes.editProfile,
       page: () => const EditProfileScreen(),
       binding: EditProfileBinding(),
+    ),
+    GetPage(
+      name: Routes.expenseList,
+      page: () => const ExpenseListScreen(),
+      binding: ExpenseBinding(),
+      children: [
+        GetPage(
+          name: Routes.createExpense,
+          page: () => const CreateExpenseScreen(),
+        ),
+      ],
     ),
   ];
 }
