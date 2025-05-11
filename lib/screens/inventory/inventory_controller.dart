@@ -76,21 +76,10 @@ class InventoryController extends GetxController {
   Future<void> fetchProducts() async {
     try {
       isLoading.value = true;
-      final userId = currentUser.value?.id;
-      if (userId == null) {
-        throw 'Usuario no autenticado';
-      }
+      final allProducts = await _getAllProducts();
+      products.value = allProducts;
 
-      final response = await databases.listDocuments(
-        databaseId: AppwriteConfig.databaseId,
-        collectionId: AppwriteConfig.productsCollectionId,
-        queries: [Query.equal('userId', userId)],
-      );
-
-      products.value =
-          response.documents.map((doc) => Product.fromJson(doc.data)).toList();
-
-      // Aplicar filtros si hay alguno activo
+      // Si hay filtros activos, aplicarlos
       if (searchQuery.value.isNotEmpty || selectedCategory.value.isNotEmpty) {
         filterProducts();
       }
@@ -261,37 +250,47 @@ class InventoryController extends GetxController {
     filterProducts();
   }
 
-  Future<void> filterProducts() async {
+  Future<List<Product>> _getAllProducts() async {
     try {
-      isLoading.value = true;
       final userId = currentUser.value?.id;
       if (userId == null) {
         throw 'Usuario no autenticado';
       }
 
-      if (searchQuery.value.isEmpty && selectedCategory.value.isEmpty) {
-        await fetchProducts();
-        return;
-      }
-
-      List<String> queries = [Query.equal('userId', userId)];
-
-      if (selectedCategory.value.isNotEmpty) {
-        queries.add(Query.equal('category', selectedCategory.value));
-      }
-
-      if (searchQuery.value.isNotEmpty) {
-        queries.add(Query.search('name', searchQuery.value));
-      }
-
       final response = await databases.listDocuments(
         databaseId: AppwriteConfig.databaseId,
         collectionId: AppwriteConfig.productsCollectionId,
-        queries: queries,
+        queries: [Query.equal('userId', userId)],
       );
 
-      products.value =
-          response.documents.map((doc) => Product.fromJson(doc.data)).toList();
+      return response.documents.map((doc) => Product.fromJson(doc.data)).toList();
+    } catch (e) {
+      debugPrint('Error obteniendo productos: $e');
+      return [];
+    }
+  }
+
+  void filterProducts() async {
+    try {
+      isLoading.value = true;
+      
+      // Si no hay filtros activos, mostrar todos los productos
+      if (searchQuery.value.isEmpty && selectedCategory.value.isEmpty) {
+        final allProducts = await _getAllProducts();
+        products.value = allProducts;
+        return;
+      }
+
+      // Obtener todos los productos y filtrar localmente
+      final allProducts = await _getAllProducts();
+      
+      products.value = allProducts.where((product) {
+        final matchesSearch = searchQuery.value.isEmpty ||
+            product.name.toLowerCase().contains(searchQuery.value.toLowerCase());
+        final matchesCategory = selectedCategory.value.isEmpty ||
+            product.category == selectedCategory.value;
+        return matchesSearch && matchesCategory;
+      }).toList();
     } catch (e) {
       Get.snackbar(
         'Error',
