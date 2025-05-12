@@ -15,6 +15,9 @@ import '../screens/profile/edit_profile_binding.dart';
 import '../screens/expenses/create_expense_screen.dart';
 import '../screens/expenses/expense_list_screen.dart';
 import '../screens/expenses/expense_binding.dart';
+import '../screens/sales/sale_list_screen.dart';
+import '../screens/sales/create_sale_screen.dart';
+import '../screens/sales/sale_binding.dart';
 
 class AppPages {
   static final pages = [
@@ -60,6 +63,14 @@ class AppPages {
           name: Routes.createExpense,
           page: () => const CreateExpenseScreen(),
         ),
+      ],
+    ),
+    GetPage(
+      name: Routes.saleList,
+      page: () => const SaleListScreen(),
+      binding: SaleBinding(),
+      children: [
+        GetPage(name: Routes.createSale, page: () => const CreateSaleScreen()),
       ],
     ),
   ];

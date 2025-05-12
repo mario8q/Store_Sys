@@ -1,52 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import '../../data/models/expense.dart';
+import '../../data/models/sale.dart';
 import '../../routes/app_routes.dart';
-import 'expense_controller.dart';
+import 'sale_controller.dart';
 
-class ExpenseListScreen extends GetView<ExpenseController> {
-  const ExpenseListScreen({Key? key}) : super(key: key);
+class SaleListScreen extends GetView<SaleController> {
+  const SaleListScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Mis Gastos')),
+      appBar: AppBar(title: const Text('Historial de Ventas')),
       body: Obx(
         () =>
             controller.isLoading.value
                 ? const Center(child: CircularProgressIndicator())
-                : controller.expenses.isEmpty
-                ? const Center(child: Text('No hay gastos registrados aun'))
+                : controller.sales.isEmpty
+                ? const Center(child: Text('No hay ventas registradas'))
                 : RefreshIndicator(
-                  onRefresh: controller.fetchExpenses,
+                  onRefresh: controller.fetchSales,
                   child: ListView.builder(
-                    itemCount: controller.expenses.length,
+                    itemCount: controller.sales.length,
                     itemBuilder: (context, index) {
-                      final expense = controller.expenses[index];
-                      return ExpenseListTile(
-                        expense: expense,
-                        onDelete: () => _confirmDelete(context, expense),
+                      final sale = controller.sales[index];
+                      return SaleListTile(
+                        sale: sale,
+                        onDelete: () => _confirmDelete(context, sale),
                       );
                     },
                   ),
                 ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed:
-            () => Get.toNamed('${Routes.expenseList}${Routes.createExpense}'),
+        onPressed: () => Get.toNamed('${Routes.saleList}${Routes.createSale}'),
         child: const Icon(Icons.add),
       ),
     );
   }
 
-  void _confirmDelete(BuildContext context, Expense expense) {
+  void _confirmDelete(BuildContext context, Sale sale) {
     showDialog(
       context: context,
       builder:
           (context) => AlertDialog(
             title: const Text('Confirmar eliminación'),
-            content: Text('¿Está seguro que desea eliminar el gasto?'),
+            content: const Text('¿Está seguro que desea eliminar esta venta?'),
             actions: [
               TextButton(
                 onPressed: () => Get.back(),
@@ -55,7 +54,7 @@ class ExpenseListScreen extends GetView<ExpenseController> {
               TextButton(
                 onPressed: () {
                   Get.back();
-                  controller.deleteExpense(expense.id);
+                  controller.deleteSale(sale.id);
                 },
                 child: const Text('Eliminar'),
                 style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -66,27 +65,24 @@ class ExpenseListScreen extends GetView<ExpenseController> {
   }
 }
 
-class ExpenseListTile extends StatelessWidget {
-  final Expense expense;
+class SaleListTile extends StatelessWidget {
+  final Sale sale;
   final VoidCallback onDelete;
 
-  const ExpenseListTile({
-    Key? key,
-    required this.expense,
-    required this.onDelete,
-  }) : super(key: key);
+  const SaleListTile({Key? key, required this.sale, required this.onDelete})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final formatter = NumberFormat.currency(locale: 'es_CO', symbol: '\$');
     return ListTile(
-      title: Text(formatter.format(expense.amount)),
+      title: Text(formatter.format(sale.total)),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(expense.category),
+          Text('${sale.items.length} productos'),
           Text(
-            DateFormat('dd/MM/yyyy').format(expense.date),
+            DateFormat('dd/MM/yyyy').format(sale.date),
             style: const TextStyle(fontSize: 12),
           ),
         ],

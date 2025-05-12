@@ -209,10 +209,10 @@ class InventoryScreen extends GetView<InventoryController> {
               const Divider(),
               ListTile(
                 leading: const Icon(Icons.point_of_sale),
-                title: const Text('Registrar Venta'),
+                title: const Text('Ventas'),
                 onTap: () {
                   Get.back();
-                  // TODO: Implementar navegación a la pantalla de ventas
+                  Get.toNamed(Routes.saleList);
                 },
               ),
               const Divider(),

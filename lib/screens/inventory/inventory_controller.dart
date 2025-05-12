@@ -298,6 +298,39 @@ class InventoryController extends GetxController {
     }
   }
 
+  Future<void> updateProductStock(String productId, int newStock) async {
+    try {
+      // Validación inicial
+      if (newStock < 0) {
+        throw 'El stock no puede ser negativo';
+      }
+
+      // Actualizar en la base de datos
+      await databases.updateDocument(
+        databaseId: AppwriteConfig.databaseId,
+        collectionId: AppwriteConfig.productsCollectionId,
+        documentId: productId,
+        data: {'stock': newStock},
+      );
+
+      // Actualizar en la lista local
+      final index = products.indexWhere((p) => p.id == productId);
+      if (index != -1) {
+        final product = products[index];
+        final updatedProduct = product.copyWith(stock: newStock);
+        final updatedList = [...products];
+        updatedList[index] = updatedProduct;
+        products.value = updatedList;
+      }
+
+      // Para depuración
+      debugPrint('Stock actualizado correctamente. Nuevo stock: $newStock');
+    } catch (e) {
+      debugPrint('Error actualizando stock del producto $productId: $e');
+      throw 'No se pudo actualizar el stock del producto: ${e.toString()}';
+    }
+  }
+
   void setSearchQuery(String query) {
     searchQuery.value = query;
     filterProducts();

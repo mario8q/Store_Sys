@@ -9,4 +9,6 @@ abstract class Routes {
   static const editProfile = '/edit-profile';
   static const expenseList = '/expense-list';
   static const createExpense = '/create';
+  static const saleList = '/sale-list';
+  static const createSale = '/create-sale';
 }

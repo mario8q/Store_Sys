@@ -14,8 +14,8 @@ void main() async {
   final client = Client();
   client
     ..setEndpoint(AppwriteConfig.endpoint)
-    ..setProject(AppwriteConfig.projectId)
-    ..setSelfSigned(status: true); // Solo para desarrollo
+    ..setProject(AppwriteConfig.projectId);
+  // Removido setSelfSigned ya que estamos usando cloud.appwrite.io
 
   // Registrar el cliente como una dependencia global
   Get.put<Client>(client, permanent: true);
