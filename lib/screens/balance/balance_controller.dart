@@ -55,7 +55,6 @@ class BalanceController extends GetxController {
       debugPrint('Iniciando fetchBalanceData');
       isLoading.value = true;
 
-      // Obtener el usuario actual
       final user = await _authRepository.getCurrentUser();
       debugPrint('Usuario actual obtenido: ${user.toMap()}');
 
@@ -63,7 +62,6 @@ class BalanceController extends GetxController {
         throw 'Usuario no autenticado';
       }
 
-      // Obtener ventas y gastos
       debugPrint('Obteniendo ventas y gastos');
       final sales = await _saleProvider.getSales(user.$id);
       final expenses = await _expenseProvider.getExpenses(user.$id);
@@ -103,6 +101,4 @@ class BalanceController extends GetxController {
   Future<void> refreshData() async {
     await fetchBalanceData();
   }
-
-  // TODO: Preparar datos para la gráfica (depende del tipo de gráfica a usar)
 }
