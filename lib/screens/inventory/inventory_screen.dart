@@ -221,7 +221,7 @@ class InventoryScreen extends GetView<InventoryController> {
                 title: const Text('Ver Balance'),
                 onTap: () {
                   Get.back();
-                  // TODO: Implementar navegación a la pantalla de balance
+                  Get.toNamed(Routes.balance);
                 },
               ),
             ],

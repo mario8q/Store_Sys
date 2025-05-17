@@ -11,4 +11,5 @@ abstract class Routes {
   static const createExpense = '/create';
   static const saleList = '/sale-list';
   static const createSale = '/create-sale';
+  static const balance = '/balance';
 }

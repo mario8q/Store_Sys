@@ -18,6 +18,8 @@ import '../screens/expenses/expense_binding.dart';
 import '../screens/sales/sale_list_screen.dart';
 import '../screens/sales/create_sale_screen.dart';
 import '../screens/sales/sale_binding.dart';
+import '../screens/balance/balance_screen.dart';
+import '../screens/balance/balance_binding.dart';
 
 class AppPages {
   static final pages = [
@@ -72,6 +74,11 @@ class AppPages {
       children: [
         GetPage(name: Routes.createSale, page: () => const CreateSaleScreen()),
       ],
+    ),
+    GetPage(
+      name: Routes.balance,
+      page: () => const BalanceScreen(),
+      binding: BalanceBinding(),
     ),
   ];
 }
