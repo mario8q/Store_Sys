@@ -49,7 +49,10 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
       onWillPop: () async => true,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Crear Producto'),
+          title: const Text(
+            'Crear Producto',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => Get.back(),
@@ -63,83 +66,59 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Obx(() {
-                  if (selectedImagePath.value.isNotEmpty) {
-                    return Container(
+                  return GestureDetector(
+                    onTap: _selectImage,
+                    child: Container(
                       height: 200,
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.file(
-                          File(selectedImagePath.value),
-                          height: 200,
-                          fit: BoxFit.cover,
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Theme.of(
+                            context,
+                          ).primaryColor.withOpacity(0.3),
+                          width: 2,
                         ),
                       ),
-                    );
-                  }
-                  return Container(
-                    height: 200,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.add_photo_alternate_outlined,
-                        size: 50,
-                        color: Colors.grey,
-                      ),
+                      child:
+                          selectedImagePath.value.isNotEmpty
+                              ? ClipRRect(
+                                borderRadius: BorderRadius.circular(14),
+                                child: Image.file(
+                                  File(selectedImagePath.value),
+                                  height: 200,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                              : Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.add_photo_alternate_outlined,
+                                    size: 64,
+                                    color: Theme.of(context).primaryColor,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Añadir imagen',
+                                    style: TextStyle(
+                                      color: Theme.of(context).primaryColor,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
                     ),
                   );
                 }),
-                const SizedBox(height: 16),
-                ElevatedButton.icon(
-                  onPressed: () async {
-                    try {
-                      final ImagePicker picker = ImagePicker();
-                      final XFile? image = await picker.pickImage(
-                        source: ImageSource.gallery,
-                        maxWidth: 1024, // Limitar tamaño para mejor rendimiento
-                        maxHeight: 1024,
-                        imageQuality: 85, // Comprimir un poco la imagen
-                      );
-                      if (image != null) {
-                        final file = File(image.path);
-                        if (await file.exists()) {
-                          selectedImagePath.value = image.path;
-                          debugPrint('Imagen seleccionada: ${image.path}');
-                        } else {
-                          debugPrint('El archivo de imagen no existe');
-                          Get.snackbar(
-                            'Error',
-                            'No se pudo acceder a la imagen seleccionada',
-                            backgroundColor: Colors.red,
-                            colorText: Colors.white,
-                          );
-                        }
-                      }
-                    } catch (e) {
-                      debugPrint('Error al seleccionar imagen: $e');
-                      Get.snackbar(
-                        'Error',
-                        'Error al seleccionar la imagen',
-                        backgroundColor: Colors.red,
-                        colorText: Colors.white,
-                      );
-                    }
-                  },
-                  icon: const Icon(Icons.image),
-                  label: const Text('Seleccionar Imagen'),
-                ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
                 TextFormField(
                   controller: nameController,
                   decoration: const InputDecoration(
                     labelText: 'Nombre del Producto',
-                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.inventory),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -151,11 +130,12 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: descriptionController,
+                  maxLines: 3,
                   decoration: const InputDecoration(
                     labelText: 'Descripción',
-                    border: OutlineInputBorder(),
+                    alignLabelWithHint: true,
+                    prefixIcon: Icon(Icons.description),
                   ),
-                  maxLines: 3,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Por favor ingrese una descripción';
@@ -164,48 +144,55 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
-                  controller: priceController,
-                  decoration: const InputDecoration(
-                    labelText: 'Precio',
-                    border: OutlineInputBorder(),
-                    prefixText: '\$',
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor ingrese el precio';
-                    }
-                    if (double.tryParse(value) == null) {
-                      return 'Por favor ingrese un precio válido';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: stockController,
-                  decoration: const InputDecoration(
-                    labelText: 'Stock',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor ingrese el stock';
-                    }
-                    if (int.tryParse(value) == null) {
-                      return 'Por favor ingrese un número válido';
-                    }
-                    return null;
-                  },
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: priceController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Precio',
+                          prefixIcon: Icon(Icons.attach_money),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Ingrese el precio';
+                          }
+                          if (double.tryParse(value) == null) {
+                            return 'Precio inválido';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: TextFormField(
+                        controller: stockController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Stock',
+                          prefixIcon: Icon(Icons.inventory_2),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Ingrese el stock';
+                          }
+                          if (int.tryParse(value) == null) {
+                            return 'Stock inválido';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: categoryController,
                   decoration: const InputDecoration(
                     labelText: 'Categoría',
-                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.category),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -214,67 +201,16 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
                 ElevatedButton(
-                  onPressed: () async {
-                    if (formKey.currentState!.validate()) {
-                      final product = Product(
-                        id: '',
-                        name: nameController.text,
-                        description: descriptionController.text,
-                        price: double.parse(priceController.text),
-                        stock: int.parse(stockController.text),
-                        category: categoryController.text,
-                        userId: controller.currentUser.value?.id ?? '',
-                        createdAt: DateTime.now(),
-                        updatedAt: DateTime.now(),
-                      );
-                      XFile? imageFile;
-                      if (selectedImagePath.value.isNotEmpty) {
-                        final file = File(selectedImagePath.value);
-                        if (await file.exists()) {
-                          imageFile = XFile(selectedImagePath.value);
-                          debugPrint(
-                            'Preparando imagen para subir: ${selectedImagePath.value}',
-                          );
-                        } else {
-                          debugPrint(
-                            'Archivo de imagen no encontrado al crear producto',
-                          );
-                        }
-                      }
-
-                      try {
-                        await controller.createProduct(
-                          product,
-                          image: imageFile,
-                        );
-
-                        Get.back(); // Primero navegar de vuelta
-
-                        // Luego actualizar la lista y mostrar el mensaje
-                        await controller.fetchProducts();
-                        Get.snackbar(
-                          'Éxito',
-                          'Producto creado correctamente',
-                          backgroundColor: Colors.green,
-                          colorText: Colors.white,
-                          duration: const Duration(seconds: 2),
-                          snackPosition: SnackPosition.TOP,
-                        );
-                      } catch (e) {
-                        Get.snackbar(
-                          'Error',
-                          'Error al crear el producto: $e',
-                          backgroundColor: Colors.red,
-                          colorText: Colors.white,
-                          duration: const Duration(seconds: 2),
-                          snackPosition: SnackPosition.TOP,
-                        );
-                      }
-                    }
-                  },
-                  child: const Text('Crear Producto'),
+                  onPressed: _createProduct,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: const Text(
+                    'CREAR PRODUCTO',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ],
             ),
@@ -282,5 +218,73 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
         ),
       ),
     );
-  } // Removed _disposeControllers as it's no longer needed
+  }
+
+  Future<void> _selectImage() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+      if (image != null) {
+        final file = File(image.path);
+        if (await file.exists()) {
+          selectedImagePath.value = image.path;
+          debugPrint('Imagen seleccionada: ${image.path}');
+        } else {
+          debugPrint('El archivo de imagen no existe');
+          Get.snackbar(
+            'Error',
+            'No se pudo acceder a la imagen seleccionada',
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error al seleccionar imagen: $e');
+      Get.snackbar(
+        'Error',
+        'Error al seleccionar la imagen',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+  Future<void> _createProduct() async {
+    if (formKey.currentState!.validate()) {
+      final product = Product(
+        id: '',
+        name: nameController.text,
+        description: descriptionController.text,
+        price: double.parse(priceController.text),
+        stock: int.parse(stockController.text),
+        category: categoryController.text,
+        userId: controller.currentUser.value?.id ?? '',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      XFile? imageFile;
+      if (selectedImagePath.value.isNotEmpty) {
+        imageFile = XFile(selectedImagePath.value);
+      }
+
+      try {
+        await controller.createProduct(product, image: imageFile);
+        Get.back();
+      } catch (e) {
+        Get.snackbar(
+          'Error',
+          'No se pudo crear el producto: $e',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    }
+  }
 }

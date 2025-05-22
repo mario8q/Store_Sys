@@ -8,6 +8,7 @@ import '../../data/models/product.dart';
 import '../../data/models/user_model.dart';
 import '../../routes/app_routes.dart';
 import '../../services/auth_repository.dart';
+import '../../data/local/local_product_repository.dart';
 
 class InventoryController extends GetxController {
   final client = Get.find<Client>();
@@ -15,6 +16,7 @@ class InventoryController extends GetxController {
   late final Databases databases;
   late final Storage storage;
   final AuthRepository _authRepository;
+  final LocalProductRepository _localRepo;
 
   final RxList<Product> products = <Product>[].obs;
   final RxBool isLoading = false.obs;
@@ -23,7 +25,8 @@ class InventoryController extends GetxController {
   final Rx<UserModel?> currentUser = Rx<UserModel?>(null);
 
   InventoryController({required AuthRepository authRepository})
-    : _authRepository = authRepository;
+    : _authRepository = authRepository,
+      _localRepo = LocalProductRepository();
 
   @override
   void onInit() {
@@ -37,6 +40,7 @@ class InventoryController extends GetxController {
   Future<void> _initializeData() async {
     try {
       await loadUserData();
+      await _localRepo.resetDatabase(); // Reset database to ensure clean state
       await fetchProducts();
     } catch (e) {
       debugPrint('Error initializing data: $e');
@@ -76,10 +80,27 @@ class InventoryController extends GetxController {
   Future<void> fetchProducts() async {
     try {
       isLoading.value = true;
-      final allProducts = await _getAllProducts();
-      products.value = allProducts;
+      final userId = currentUser.value?.id;
+      if (userId == null) {
+        throw 'Usuario no autenticado';
+      }
 
-      // Si hay filtros activos, aplicarlos
+      try {
+        // Intentar obtener productos de Appwrite primero
+        final remoteProducts = await _getAllProducts();
+
+        // Guardar en SQLite
+        await _localRepo.saveProducts(remoteProducts);
+
+        // Cargar desde SQLite
+        products.value = await _localRepo.getProducts(userId);
+      } catch (e) {
+        debugPrint('Error fetching from Appwrite, using local data: $e');
+        // Si falla Appwrite, usar datos locales
+        products.value = await _localRepo.getProducts(userId);
+      }
+
+      // Aplicar filtros si hay alguno activo
       if (searchQuery.value.isNotEmpty || selectedCategory.value.isNotEmpty) {
         filterProducts();
       }
@@ -102,21 +123,14 @@ class InventoryController extends GetxController {
       if (userId == null) {
         throw 'Usuario no autenticado';
       }
+
       String? imageId;
-      // Si hay una imagen, súbela primero
       if (image != null) {
         try {
-          debugPrint('Intentando subir imagen desde: ${image.path}');
-          debugPrint('Bucket ID: ${AppwriteConfig.productsBucketId}');
-
-          // Generar un ID único que será el mismo para el archivo y el producto
           final uniqueId = ID.unique();
-          debugPrint('ID generado para el archivo: $uniqueId');
-
-          // Obtener el nombre del archivo original
           final originalFilename = image.name;
           final extension = originalFilename.split('.').last;
-          final safeFilename = '${uniqueId}.$extension';
+          final safeFilename = '$uniqueId.$extension';
 
           final file = await storage.createFile(
             bucketId: AppwriteConfig.productsBucketId,
@@ -129,49 +143,48 @@ class InventoryController extends GetxController {
           );
 
           imageId = file.$id;
-          debugPrint('Imagen subida con éxito. ID: $imageId');
-
-          // Verificar que el archivo se subió correctamente
-          try {
-            final fileInfo = await storage.getFile(
-              bucketId: AppwriteConfig.productsBucketId,
-              fileId: imageId,
-            );
-            debugPrint('Archivo verificado: ${fileInfo.name}');
-          } catch (e) {
-            debugPrint('Error verificando el archivo: $e');
-            throw 'Error verificando la imagen subida: $e';
-          }
         } catch (e) {
           debugPrint('Error al subir la imagen: $e');
           throw 'Error al subir la imagen: $e';
         }
       }
-
-      // Crear el documento del producto con el userId
-      final productWithUserId = product.copyWith(userId: userId);
-      debugPrint('Creando producto con imageId: $imageId');
-      debugPrint('Preparando datos del producto para crear documento');
       final documentId = ID.unique();
-      debugPrint('ID generado para el documento: $documentId');
+      final now = DateTime.now();
+      final productWithUserId = product.copyWith(
+        userId: userId,
+        id: documentId,
+        createdAt: now,
+        updatedAt: now,
+      );
 
       final productData = {
         ...productWithUserId.toJson(),
         if (imageId != null) 'imageUrl': imageId,
       };
-      debugPrint('Datos del producto a crear: $productData');
 
-      final response = await databases.createDocument(
-        databaseId: AppwriteConfig.databaseId,
-        collectionId: AppwriteConfig.productsCollectionId,
-        documentId: documentId,
-        data: productData,
-      );
+      try {
+        // Crear en Appwrite
+        final response = await databases.createDocument(
+          databaseId: AppwriteConfig.databaseId,
+          collectionId: AppwriteConfig.productsCollectionId,
+          documentId: documentId,
+          data: productData,
+        );
 
-      final newProduct = Product.fromJson(response.data);
-      products.add(newProduct);
+        final newProduct = Product.fromJson(response.data);
 
-      // No mostrar el snackbar aquí, dejarlo para la pantalla que llama a este método
+        // Guardar en SQLite
+        await _localRepo.saveProduct(newProduct);
+
+        // Actualizar la lista local
+        products.add(newProduct);
+      } catch (e) {
+        debugPrint('Error creating product in Appwrite: $e');
+        // Si falla Appwrite, guardar solo localmente
+        final localProduct = productWithUserId.copyWith(id: documentId);
+        await _localRepo.saveProduct(localProduct);
+        products.add(localProduct);
+      }
     } catch (e) {
       Get.snackbar(
         'Error',
@@ -189,12 +202,9 @@ class InventoryController extends GetxController {
       isLoading.value = true;
       String? imageId = product.imageUrl;
 
-      // Si hay una nueva imagen, súbela primero
       if (image != null) {
         if (imageId != null) {
-          // Obtener el ID de la imagen actual
           imageId = imageId.split('/').last.split('?').first;
-          // Intentar eliminar la imagen anterior si existe
           try {
             await storage.deleteFile(
               bucketId: AppwriteConfig.productsBucketId,
@@ -204,11 +214,9 @@ class InventoryController extends GetxController {
             debugPrint('Error al eliminar imagen anterior: $e');
           }
         } else {
-          // Si no hay imagen previa, generar nuevo ID
           imageId = ID.unique();
         }
 
-        // Subir la nueva imagen con el ID existente o el nuevo
         final file = await storage.createFile(
           bucketId: AppwriteConfig.productsBucketId,
           fileId: imageId,
@@ -221,20 +229,38 @@ class InventoryController extends GetxController {
         imageId = file.$id;
       }
 
-      // Actualizar el documento del producto
-      final response = await databases.updateDocument(
-        databaseId: AppwriteConfig.databaseId,
-        collectionId: AppwriteConfig.productsCollectionId,
-        documentId: product.id,
-        data: {...product.toJson(), if (imageId != null) 'imageUrl': imageId},
-      );
+      try {
+        // Actualizar en Appwrite
+        final response = await databases.updateDocument(
+          databaseId: AppwriteConfig.databaseId,
+          collectionId: AppwriteConfig.productsCollectionId,
+          documentId: product.id,
+          data: {...product.toJson(), if (imageId != null) 'imageUrl': imageId},
+        );
 
-      final updatedProduct = Product.fromJson(response.data);
-      final index = products.indexWhere((p) => p.id == updatedProduct.id);
-      if (index != -1) {
-        products[index] = updatedProduct;
-      } // Actualizar UI primero, luego mostrar mensaje
-      Get.back(); // Volver a la pantalla de inventario
+        final updatedProduct = Product.fromJson(response.data);
+
+        // Actualizar en SQLite
+        await _localRepo.updateProduct(updatedProduct);
+
+        // Actualizar en la lista local
+        final index = products.indexWhere((p) => p.id == updatedProduct.id);
+        if (index != -1) {
+          products[index] = updatedProduct;
+        }
+      } catch (e) {
+        debugPrint('Error updating product in Appwrite: $e');
+        // Si falla Appwrite, actualizar solo localmente
+        final localProduct = product.copyWith(updatedAt: DateTime.now());
+        await _localRepo.updateProduct(localProduct);
+
+        final index = products.indexWhere((p) => p.id == localProduct.id);
+        if (index != -1) {
+          products[index] = localProduct;
+        }
+      }
+
+      Get.back();
       Get.snackbar(
         'Éxito',
         'Producto actualizado correctamente',
@@ -257,7 +283,6 @@ class InventoryController extends GetxController {
     try {
       isLoading.value = true;
 
-      // Si el producto tiene una imagen, eliminarla primero
       if (product.imageUrl != null) {
         final imageId = product.imageUrl!.split('/').last.split('?').first;
         try {
@@ -270,15 +295,23 @@ class InventoryController extends GetxController {
         }
       }
 
-      // Eliminar el documento del producto
-      await databases.deleteDocument(
-        databaseId: AppwriteConfig.databaseId,
-        collectionId: AppwriteConfig.productsCollectionId,
-        documentId: product.id,
-      );
+      try {
+        // Eliminar de Appwrite
+        await databases.deleteDocument(
+          databaseId: AppwriteConfig.databaseId,
+          collectionId: AppwriteConfig.productsCollectionId,
+          documentId: product.id,
+        );
+      } catch (e) {
+        debugPrint('Error deleting product from Appwrite: $e');
+      }
 
+      // Eliminar de SQLite
+      await _localRepo.deleteProduct(product.id);
+
+      // Actualizar la lista local
       products.removeWhere((p) => p.id == product.id);
-      Get.back(); // Volver a la pantalla de inventario
+      Get.back();
 
       Get.snackbar(
         'Éxito',

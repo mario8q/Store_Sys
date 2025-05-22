@@ -53,10 +53,9 @@ class _CreateExpenseScreenState extends State<CreateExpenseScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Registrar Gasto'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Get.back(),
+        title: const Text(
+          'Registrar Gasto',
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
       body: SingleChildScrollView(
@@ -67,12 +66,30 @@ class _CreateExpenseScreenState extends State<CreateExpenseScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Fecha
-              Card(
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
                 child: ListTile(
-                  leading: const Icon(Icons.calendar_today),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  leading: Icon(
+                    Icons.calendar_today,
+                    color: Theme.of(context).primaryColor,
+                  ),
                   title: Obx(
                     () => Text(
                       'Fecha: ${selectedDate.value.day}/${selectedDate.value.month}/${selectedDate.value.year}',
+                      style: const TextStyle(fontWeight: FontWeight.w500),
                     ),
                   ),
                   onTap: () => _selectDate(context),
@@ -81,13 +98,29 @@ class _CreateExpenseScreenState extends State<CreateExpenseScreen> {
               const SizedBox(height: 16),
 
               // Categoría
-              Card(
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: DropdownButtonFormField<String>(
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Categoría',
                       border: InputBorder.none,
+                      labelStyle: TextStyle(color: Colors.grey[700]),
+                      icon: Icon(
+                        Icons.category,
+                        color: Theme.of(context).primaryColor,
+                      ),
                     ),
                     value: selectedCategory.value,
                     items:
@@ -95,38 +128,19 @@ class _CreateExpenseScreenState extends State<CreateExpenseScreen> {
                             .map(
                               (category) => DropdownMenuItem(
                                 value: category,
-                                child: Text(category),
+                                child: Text(
+                                  category,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
                               ),
                             )
                             .toList(),
                     onChanged: (value) {
-                      if (value != null) selectedCategory.value = value;
-                    },
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Valor del gasto
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                  child: TextFormField(
-                    controller: amountController,
-                    decoration: const InputDecoration(
-                      labelText: 'Valor del gasto',
-                      prefixText: '\$',
-                      border: InputBorder.none,
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor ingrese el valor';
+                      if (value != null) {
+                        selectedCategory.value = value;
                       }
-                      if (double.tryParse(value) == null) {
-                        return 'Por favor ingrese un valor válido';
-                      }
-                      return null;
                     },
                   ),
                 ),
@@ -134,13 +148,29 @@ class _CreateExpenseScreenState extends State<CreateExpenseScreen> {
               const SizedBox(height: 16),
 
               // Método de pago
-              Card(
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: DropdownButtonFormField<String>(
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Método de pago',
                       border: InputBorder.none,
+                      labelStyle: TextStyle(color: Colors.grey[700]),
+                      icon: Icon(
+                        Icons.payment,
+                        color: Theme.of(context).primaryColor,
+                      ),
                     ),
                     value: selectedPaymentMethod.value,
                     items:
@@ -148,57 +178,113 @@ class _CreateExpenseScreenState extends State<CreateExpenseScreen> {
                             .map(
                               (method) => DropdownMenuItem(
                                 value: method,
-                                child: Text(method),
+                                child: Text(
+                                  method,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
                               ),
                             )
                             .toList(),
                     onChanged: (value) {
-                      if (value != null) selectedPaymentMethod.value = value;
+                      if (value != null) {
+                        selectedPaymentMethod.value = value;
+                      }
                     },
                   ),
                 ),
               ),
               const SizedBox(height: 16),
 
-              // Descripción
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                  child: TextFormField(
-                    controller: descriptionController,
-                    decoration: const InputDecoration(
-                      labelText: 'Descripción',
-                      border: InputBorder.none,
+              // Monto
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
                     ),
-                    maxLines: 3,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor ingrese una descripción';
-                      }
-                      return null;
-                    },
+                  ],
+                ),
+                child: TextFormField(
+                  controller: amountController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: 'Monto',
+                    prefixIcon: Icon(
+                      Icons.attach_money,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                   ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor ingrese el monto';
+                    }
+                    if (double.tryParse(value) == null) {
+                      return 'Por favor ingrese un monto válido';
+                    }
+                    return null;
+                  },
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
-              // Botón de registro
-              ElevatedButton.icon(
-                onPressed: () {
-                  if (formKey.currentState!.validate()) {
-                    controller.createExpense(
-                      selectedDate.value,
-                      selectedCategory.value,
-                      double.parse(amountController.text),
-                      selectedPaymentMethod.value,
-                      descriptionController.text,
-                    );
-                  }
-                },
-                icon: const Icon(Icons.save),
-                label: const Text('Registrar Gasto'),
+              // Descripción
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: TextFormField(
+                  controller: descriptionController,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    labelText: 'Descripción',
+                    prefixIcon: Icon(
+                      Icons.description,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor ingrese una descripción';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              // Botón guardar
+              ElevatedButton(
+                onPressed: _createExpense,
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: const Text(
+                  'GUARDAR GASTO',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
             ],
@@ -206,5 +292,17 @@ class _CreateExpenseScreenState extends State<CreateExpenseScreen> {
         ),
       ),
     );
+  }
+
+  void _createExpense() {
+    if (formKey.currentState!.validate()) {
+      controller.createExpense(
+        selectedDate.value,
+        selectedCategory.value,
+        double.parse(amountController.text),
+        selectedPaymentMethod.value,
+        descriptionController.text,
+      );
+    }
   }
 }

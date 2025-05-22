@@ -35,7 +35,7 @@ class Product {
     }
 
     return Product(
-      id: json['\$id'] ?? '',
+      id: json['\$id'] ?? json['document_id'] ?? '',
       name: json['name'] ?? '',
       description: json['description'] ?? '',
       price: (json['price'] ?? 0.0).toDouble(),
@@ -43,20 +43,45 @@ class Product {
       imageUrl: imageUrl,
       category: json['category'] ?? '',
       userId: json['userId'] ?? '',
-      createdAt: DateTime.parse(json['\$createdAt']),
-      updatedAt: DateTime.parse(json['\$updatedAt']),
+      createdAt:
+          json['\$createdAt'] != null
+              ? DateTime.parse(json['\$createdAt'])
+              : json['created_at'] != null
+              ? DateTime.parse(json['created_at'])
+              : DateTime.now(),
+      updatedAt:
+          json['\$updatedAt'] != null
+              ? DateTime.parse(json['\$updatedAt'])
+              : json['updated_at'] != null
+              ? DateTime.parse(json['updated_at'])
+              : DateTime.now(),
     );
   }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'description': description,
-      'price': price,
-      'stock': stock,
-      'category': category,
-      'userId': userId,
-    };
+  Map<String, dynamic> toJson({bool forAppwrite = true}) {
+    if (forAppwrite) {
+      return {
+        'name': name,
+        'description': description,
+        'price': price,
+        'stock': stock,
+        'category': category,
+        'userId': userId,
+      };
+    } else {
+      // Para SQLite
+      return {
+        'document_id': id,
+        'name': name,
+        'description': description,
+        'price': price,
+        'stock': stock,
+        'category': category,
+        'imageUrl': imageUrl,
+        'userId': userId,
+        'created_at': createdAt.toIso8601String(),
+        'updated_at': updatedAt.toIso8601String(),
+      };
+    }
   }
 
   Product copyWith({
