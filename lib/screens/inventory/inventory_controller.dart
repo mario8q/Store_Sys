@@ -200,33 +200,40 @@ class InventoryController extends GetxController {
   Future<void> updateProduct(Product product, {XFile? image}) async {
     try {
       isLoading.value = true;
-      String? imageId = product.imageUrl;
+      String? imageId;
 
       if (image != null) {
-        if (imageId != null) {
-          imageId = imageId.split('/').last.split('?').first;
+        // Si hay una imagen existente, obtener su ID y eliminarla
+        if (product.imageUrl != null) {
+          final existingImageId =
+              product.imageUrl!.split('/').last.split('?').first;
           try {
             await storage.deleteFile(
               bucketId: AppwriteConfig.productsBucketId,
-              fileId: imageId,
+              fileId: existingImageId,
             );
           } catch (e) {
             debugPrint('Error al eliminar imagen anterior: $e');
           }
-        } else {
-          imageId = ID.unique();
         }
 
-        final file = await storage.createFile(
-          bucketId: AppwriteConfig.productsBucketId,
-          fileId: imageId,
-          file: InputFile.fromPath(path: image.path),
-          permissions: [
-            Permission.read(Role.any()),
-            Permission.write(Role.user(product.userId)),
-          ],
-        );
-        imageId = file.$id;
+        // Subir la nueva imagen
+        final uniqueId = ID.unique();
+        try {
+          final file = await storage.createFile(
+            bucketId: AppwriteConfig.productsBucketId,
+            fileId: uniqueId,
+            file: InputFile.fromPath(path: image.path),
+            permissions: [
+              Permission.read(Role.any()),
+              Permission.write(Role.user(product.userId)),
+            ],
+          );
+          imageId = file.$id;
+        } catch (e) {
+          debugPrint('Error al subir nueva imagen: $e');
+          throw 'Error al subir la imagen: $e';
+        }
       }
 
       try {
@@ -338,12 +345,15 @@ class InventoryController extends GetxController {
         throw 'El stock no puede ser negativo';
       }
 
-      // Actualizar en la base de datos
+      // Obtener el producto actual para mantener los demás datos
+      final currentProduct = products.firstWhere((p) => p.id == productId);
+
+      // Actualizar en la base de datos manteniendo los demás campos
       await databases.updateDocument(
         databaseId: AppwriteConfig.databaseId,
         collectionId: AppwriteConfig.productsCollectionId,
         documentId: productId,
-        data: {'stock': newStock},
+        data: {...currentProduct.toJson(forAppwrite: true), 'stock': newStock},
       );
 
       // Actualizar en la lista local

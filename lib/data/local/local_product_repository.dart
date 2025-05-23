@@ -61,9 +61,16 @@ class LocalProductRepository {
 
   Future<void> updateProduct(Product product) async {
     final db = await dbHelper.database;
+    final data = product.toJson(forAppwrite: false);
+
+    // Asegurarse de que la URL de la imagen se mantenga
+    if (product.imageUrl != null) {
+      data['imageUrl'] = product.imageUrl;
+    }
+
     await db.update(
       'products',
-      product.toJson(forAppwrite: false),
+      data,
       where: 'document_id = ?',
       whereArgs: [product.id],
     );

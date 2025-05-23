@@ -29,8 +29,12 @@ class Product {
     String? imageId = json['imageUrl'];
     String? imageUrl;
     if (imageId != null) {
-      imageUrl =
-          '${AppwriteConfig.endpoint}/storage/buckets/${AppwriteConfig.productsBucketId}/files/$imageId/view?project=${AppwriteConfig.projectId}';
+      if (!imageId.startsWith('http')) {
+        imageUrl =
+            '${AppwriteConfig.endpoint}/storage/buckets/${AppwriteConfig.productsBucketId}/files/$imageId/view?project=${AppwriteConfig.projectId}';
+      } else {
+        imageUrl = imageId;
+      }
       debugPrint('URL de imagen construida: $imageUrl');
     }
 

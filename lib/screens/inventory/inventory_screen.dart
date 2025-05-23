@@ -358,19 +358,35 @@ class ProductListTile extends StatelessWidget {
                   width: 50,
                   height: 50,
                   fit: BoxFit.cover,
-                  errorBuilder:
-                      (context, error, stackTrace) => Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.image_not_supported,
-                          color: Colors.grey,
-                        ),
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(8),
                       ),
+                      child: const Center(
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    debugPrint('Error loading image: $error');
+                    return Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.image_not_supported,
+                        color: Colors.grey,
+                      ),
+                    );
+                  },
                 ),
               )
               : Container(
